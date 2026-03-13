@@ -77,6 +77,10 @@ async def report_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     return ConversationHandler.END
 
 
+async def _progress_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    return ConversationHandler.END
+
+
 async def receive_goal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
     if not text.isdigit() or int(text) <= 0:
@@ -100,7 +104,12 @@ def register(app) -> None:
                 MessageHandler(filters.TEXT & ~filters.COMMAND, receive_goal),
             ],
         },
-        fallbacks=[],
+        fallbacks=[
+            MessageHandler(
+                filters.Regex("^(🏠 Trang chủ|📚 Học từ vựng|📋 Bộ từ của tôi|🔍 Tìm từ|💝 Ủng hộ)$"),
+                _progress_cancel,
+            ),
+        ],
         name="report_conv",
     )
     app.add_handler(conv)
