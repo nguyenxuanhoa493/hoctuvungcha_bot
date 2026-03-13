@@ -16,7 +16,11 @@ async def ask_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await _do_search(update, context, " ".join(args).strip())
         return ConversationHandler.END
 
-    await update.message.reply_text("🔍 Nhập từ cần tìm:")
+    from telegram import ForceReply
+    await update.message.reply_text(
+        "🔍 Nhập từ cần tìm:",
+        reply_markup=ForceReply(input_field_placeholder="Gõ từ tiếng Anh..."),
+    )
     return WAITING_QUERY
 
 

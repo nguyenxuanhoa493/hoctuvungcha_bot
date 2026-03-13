@@ -37,12 +37,16 @@ async def send_typing_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     text = "\n".join(lines)
 
+    from telegram import ForceReply
+    force_reply = ForceReply(input_field_placeholder="Gõ đáp án...")
+
     if vocab.get("imageUrl"):
         await context.bot.send_photo(
             chat.id, photo=vocab["imageUrl"], caption=text, parse_mode="HTML",
+            reply_markup=force_reply,
         )
     else:
-        await context.bot.send_message(chat.id, text, parse_mode="HTML")
+        await context.bot.send_message(chat.id, text, parse_mode="HTML", reply_markup=force_reply)
     return False
 
 
