@@ -8,9 +8,9 @@ QR_PATH = Path(__file__).parent.parent / "qr.png"
 
 MAIN_MENU = ReplyKeyboardMarkup(
     [
+        ["🏠 Trang chủ", "🔍 Tìm từ"],
         ["📚 Học từ vựng", "📋 Bộ từ của tôi"],
-        ["📊 Báo cáo", "🔍 Tìm từ"],
-        ["🏠 Trang chủ", "💝 Ủng hộ"],
+        ["📊 Báo cáo", "💝 Ủng hộ"],
     ],
     resize_keyboard=True,
 )
