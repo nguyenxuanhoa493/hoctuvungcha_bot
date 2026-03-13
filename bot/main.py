@@ -42,6 +42,7 @@ def main() -> None:
             port=PORT,
             webhook_url=f"{WEBHOOK_URL}/webhook",
             url_path="/webhook",
+            drop_pending_updates=True,
         )
     else:
         logging.info("No WEBHOOK_URL set — running in polling mode.")
