@@ -30,7 +30,7 @@ def _level_keyboard(levels: list[dict]) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(lv["title"], callback_data=f"level:{int(lv['sqlId'])}")]
         for lv in levels
     ]
-    buttons.append([InlineKeyboardButton("❌ Huỷ", callback_data="cancel")])
+    buttons.append([InlineKeyboardButton("🔙 Quay lại", callback_data="back_to_source")])
     return InlineKeyboardMarkup(buttons)
 
 
@@ -57,7 +57,7 @@ def _mode_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🃏 Flashcard", callback_data=f"mode:{MODE_FLASHCARD}")],
         [InlineKeyboardButton("🎯 Trắc nghiệm", callback_data=f"mode:{MODE_QUIZ}")],
         [InlineKeyboardButton("⌨️ Gõ đáp án", callback_data=f"mode:{MODE_TYPING}")],
-        [InlineKeyboardButton("❌ Huỷ", callback_data="cancel")],
+        [InlineKeyboardButton("🔙 Quay lại", callback_data="back_to_subcat")],
     ])
 
 
@@ -116,9 +116,16 @@ async def choose_level(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     await query.answer()
     data = query.data
 
-    if data == "cancel":
-        await query.edit_message_text("❌ Đã huỷ.")
-        return ConversationHandler.END
+    if data in ("cancel", "back_to_source"):
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("📂 Chọn Level / Chủ đề", callback_data="source:level")],
+            [InlineKeyboardButton("📋 Bộ từ của tôi", callback_data="source:custom")],
+            [InlineKeyboardButton("❌ Huỷ", callback_data="cancel")],
+        ])
+        await query.edit_message_text(
+            "📚 *Chọn nguồn từ vựng để học:*", parse_mode="Markdown", reply_markup=keyboard
+        )
+        return CHOOSE_SOURCE
 
     if data.startswith("level:"):
         level_id = int(data.split(":")[1])
@@ -131,9 +138,6 @@ async def choose_level(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         )
         return CHOOSE_SUBCAT
 
-    if data == "cancel":
-        await query.edit_message_text("❌ Đã huỷ.")
-        return ConversationHandler.END
     return CHOOSE_LEVEL
 
 
@@ -215,7 +219,15 @@ async def choose_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     await query.answer()
     data = query.data
 
-    if data == "cancel":
+    if data in ("cancel", "back_to_subcat"):
+        subcats = context.user_data.get("subcats", [])
+        if subcats:
+            page = context.user_data.get("subcat_page", 0)
+            await query.edit_message_text(
+                "📑 *Chọn chủ đề:*", parse_mode="Markdown",
+                reply_markup=_subcat_keyboard(subcats, page)
+            )
+            return CHOOSE_SUBCAT
         await query.edit_message_text("❌ Đã huỷ.")
         return ConversationHandler.END
 
