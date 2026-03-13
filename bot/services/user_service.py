@@ -59,3 +59,16 @@ def delete_custom_set(set_id: str) -> None:
 
 def get_custom_set(set_id: str) -> dict | None:
     return get_client().query("customSets:getSet", {"setId": set_id})
+
+
+def set_daily_goal(telegram_id: int, goal: int) -> None:
+    get_client().mutation("users:setDailyGoal", {"telegramId": telegram_id, "goal": goal})
+
+
+def get_user(telegram_id: int) -> dict | None:
+    return get_client().query("users:getUser", {"telegramId": telegram_id})
+
+
+def get_daily_report(telegram_id: int) -> dict:
+    result = get_client().query("progress:getDailyReport", {"telegramId": telegram_id})
+    return result or {"today": {"answered": 0, "correct": 0}, "history": []}

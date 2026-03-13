@@ -6,7 +6,7 @@ from bot.services import user_service
 MAIN_MENU = ReplyKeyboardMarkup(
     [
         ["📚 Học từ vựng", "📋 Bộ từ của tôi"],
-        ["📊 Tiến độ", "🔍 Tìm từ"],
+        ["📊 Báo cáo", "🔍 Tìm từ"],
     ],
     resize_keyboard=True,
 )
@@ -35,7 +35,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "📖 *Hướng dẫn sử dụng*\n\n"
         "• /study — Chọn chủ đề và bắt đầu học\n"
         "• /myset — Quản lý bộ từ cá nhân\n"
-        "• /progress — Xem tiến độ học\n"
+        "• /progress — Xem báo cáo học tập\n"
         "• /search \\<từ\\> — Tìm kiếm từ vựng\n"
         "• /menu — Quay về menu chính\n"
         "• /stop — Dừng phiên học\n\n"

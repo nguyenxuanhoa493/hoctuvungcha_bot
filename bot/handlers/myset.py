@@ -194,7 +194,7 @@ def register(app) -> None:
             CommandHandler("cancel", myset_cancel),
             CommandHandler("menu", myset_cancel),
             MessageHandler(
-                filters.Regex("^(📚 Học từ vựng|📊 Tiến độ|🔍 Tìm từ)$"),
+                filters.Regex("^(📚 Học từ vựng|📊 Báo cáo|🔍 Tìm từ)$"),
                 myset_cancel,
             ),
             MessageHandler(filters.Regex("^📋 Bộ từ của tôi$"), myset_start),

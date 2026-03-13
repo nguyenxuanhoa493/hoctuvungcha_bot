@@ -1,10 +1,13 @@
-import random
 from telegram import Update
 from telegram.ext import ContextTypes
-from bot.handlers.study import STUDYING
+from bot.handlers.study import STUDYING, ConversationHandler
 from bot.services import quiz_service, user_service
 
-HINTS = ["meaning_vi", "pronunciation_ipa", "image_url"]
+
+def _word_hint(word: str) -> str:
+    """Convert word to underscore hint. Multi-word separated by 3 spaces."""
+    parts = word.split(" ")
+    return "   ".join(" ".join("_" for _ in part) for part in parts)
 
 
 async def send_typing_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -15,42 +18,31 @@ async def send_typing_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if index >= len(vocab_list):
         await context.bot.send_message(
-            chat.id,
-            "🎉 Bạn đã hoàn thành phiên học\\!\nNhấn menu để tiếp tục\\.",
-            parse_mode="MarkdownV2",
+            chat.id, "🎉 Bạn đã hoàn thành phiên học!\nNhấn menu để tiếp tục.",
         )
         context.user_data.clear()
         return True
 
     vocab = vocab_list[index]
-    hint_type = random.choice(HINTS)
     context.user_data["awaiting_answer"] = True
     context.user_data["current_vocab"] = vocab
 
-    prompt_lines = [f"⌨️ *Gõ từ tiếng Anh* _{index + 1}/{len(vocab_list)}_\n"]
+    hint = _word_hint(vocab["word"])
+    lines = [f"⌨️ <b>Gõ từ tiếng Anh</b>  <i>{index + 1}/{len(vocab_list)}</i>", ""]
+    lines.append(f"🇻🇳 Nghĩa: <b>{vocab.get('meaningVi', '?')}</b>")
+    ipa = vocab.get("pronunciationIpa") or vocab.get("pronunciation")
+    if ipa:
+        lines.append(f"📢 <code>/{ipa}/</code>")
+    lines.append(f"\n💡 <code>{hint}</code>")
 
-    if hint_type == "meaning_vi" and vocab.get("meaningVi"):
-        prompt_lines.append(f"🇻🇳 Nghĩa: *{vocab['meaningVi']}*")
-    elif hint_type == "pronunciation_ipa" and vocab.get("pronunciationIpa"):
-        prompt_lines.append(f"📢 Phiên âm: `/{vocab['pronunciationIpa']}/`")
-    else:
-        # Fallback to meaning if no image or ipa
-        prompt_lines.append(f"🇻🇳 Nghĩa: *{vocab.get('meaningVi', '?')}*")
+    text = "\n".join(lines)
 
-    if vocab.get("synonyms"):
-        prompt_lines.append(f"🔗 Từ đồng nghĩa: _{vocab['synonyms']}_")
-
-    text = "\n".join(prompt_lines)
-
-    if hint_type == "image_url" and vocab.get("imageUrl"):
+    if vocab.get("imageUrl"):
         await context.bot.send_photo(
-            chat.id,
-            photo=vocab["imageUrl"],
-            caption=text,
-            parse_mode="Markdown",
+            chat.id, photo=vocab["imageUrl"], caption=text, parse_mode="HTML",
         )
     else:
-        await context.bot.send_message(chat.id, text, parse_mode="Markdown")
+        await context.bot.send_message(chat.id, text, parse_mode="HTML")
     return False
 
 
@@ -66,11 +58,13 @@ async def handle_typing_answer(update: Update, context: ContextTypes.DEFAULT_TYP
     correct = quiz_service.check_typed_answer(user_input, vocab)
 
     if correct:
-        await update.message.reply_text(f"✅ *Chính xác\\!* Từ cần tìm là *{vocab['word']}*\\.", parse_mode="MarkdownV2")
+        await update.message.reply_text(
+            f"✅ <b>Chính xác!</b> Từ cần tìm là <b>{vocab['word']}</b>.", parse_mode="HTML"
+        )
     else:
         await update.message.reply_text(
-            f"❌ *Sai rồi\\!* Bạn gõ: `{user_input}`\n✅ Đáp án: *{vocab['word']}*",
-            parse_mode="MarkdownV2",
+            f"❌ <b>Sai rồi!</b> Bạn gõ: <code>{user_input}</code>\n✅ Đáp án: <b>{vocab['word']}</b>",
+            parse_mode="HTML",
         )
 
     user_service.upsert_word_progress(

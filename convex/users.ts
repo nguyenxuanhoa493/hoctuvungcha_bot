@@ -23,6 +23,17 @@ export const upsertUser = mutation({
   },
 });
 
+export const setDailyGoal = mutation({
+  args: { telegramId: v.number(), goal: v.number() },
+  handler: async (ctx, { telegramId, goal }) => {
+    const user = await ctx.db
+      .query("botUsers")
+      .withIndex("by_telegram_id", (q) => q.eq("telegramId", telegramId))
+      .first();
+    if (user) await ctx.db.patch(user._id, { dailyGoal: goal });
+  },
+});
+
 export const getUser = query({
   args: { telegramId: v.number() },
   handler: async (ctx, { telegramId }) => {

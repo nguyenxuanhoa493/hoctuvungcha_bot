@@ -8,6 +8,19 @@ export const getLevels = query({
   },
 });
 
+export const getLevelsWithSubcatCount = query({
+  args: {},
+  handler: async (ctx) => {
+    const levels = await ctx.db.query("levels").collect();
+    const subcats = await ctx.db.query("subcategories").collect();
+    const countByLevel: Record<number, number> = {};
+    for (const s of subcats) {
+      countByLevel[s.levelSqlId] = (countByLevel[s.levelSqlId] || 0) + 1;
+    }
+    return levels.map((l) => ({ ...l, subcatCount: countByLevel[l.sqlId] ?? 0 }));
+  },
+});
+
 export const getSubcategoriesByLevel = query({
   args: { levelSqlId: v.number() },
   handler: async (ctx, { levelSqlId }) => {

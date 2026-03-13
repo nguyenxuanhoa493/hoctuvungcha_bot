@@ -116,7 +116,7 @@ def register(app) -> None:
         fallbacks=[
             CommandHandler("menu", _search_cancel),
             MessageHandler(
-                filters.Regex("^(📚 Học từ vựng|📋 Bộ từ của tôi|📊 Tiến độ|🔍 Tìm từ)$"),
+                filters.Regex("^(📚 Học từ vựng|📋 Bộ từ của tôi|📊 Báo cáo|🔍 Tìm từ)$"),
                 _search_cancel,
             ),
         ],

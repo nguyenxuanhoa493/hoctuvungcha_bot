@@ -1,8 +1,14 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-const KNOWN_THRESHOLD = 5;   // correct streak to mark as "known"
-const LEARNING_THRESHOLD = 1; // at least 1 correct to move from "new" to "learning"
+const KNOWN_THRESHOLD = 5;
+const LEARNING_THRESHOLD = 1;
+
+function todayVN(): string {
+  // UTC+7
+  const d = new Date(Date.now() + 7 * 3600 * 1000);
+  return d.toISOString().slice(0, 10);
+}
 
 export const getWordProgress = query({
   args: { telegramId: v.number(), vocabId: v.number() },
@@ -56,6 +62,29 @@ export const upsertWordProgress = mutation({
         lastReviewedAt: now,
       });
     }
+
+    // Track daily activity
+    const date = todayVN();
+    const daily = await ctx.db
+      .query("dailyActivity")
+      .withIndex("by_user_date", (q) =>
+        q.eq("telegramId", telegramId).eq("date", date)
+      )
+      .first();
+
+    if (daily) {
+      await ctx.db.patch(daily._id, {
+        answered: daily.answered + 1,
+        correct: daily.correct + (correct ? 1 : 0),
+      });
+    } else {
+      await ctx.db.insert("dailyActivity", {
+        telegramId,
+        date,
+        answered: 1,
+        correct: correct ? 1 : 0,
+      });
+    }
   },
 });
 
@@ -74,5 +103,37 @@ export const getStats = query({
       else counts.new++;
     }
     return { ...counts, total: all.length };
+  },
+});
+
+export const getDailyReport = query({
+  args: { telegramId: v.number() },
+  handler: async (ctx, { telegramId }) => {
+    const date = todayVN();
+    const today = await ctx.db
+      .query("dailyActivity")
+      .withIndex("by_user_date", (q) =>
+        q.eq("telegramId", telegramId).eq("date", date)
+      )
+      .first();
+
+    // Last 7 days
+    const history: { date: string; answered: number; correct: number }[] = [];
+    for (let i = 1; i <= 6; i++) {
+      const d = new Date(Date.now() + 7 * 3600 * 1000 - i * 86400 * 1000);
+      const ds = d.toISOString().slice(0, 10);
+      const rec = await ctx.db
+        .query("dailyActivity")
+        .withIndex("by_user_date", (q) =>
+          q.eq("telegramId", telegramId).eq("date", ds)
+        )
+        .first();
+      history.push({ date: ds, answered: rec?.answered ?? 0, correct: rec?.correct ?? 0 });
+    }
+
+    return {
+      today: { date, answered: today?.answered ?? 0, correct: today?.correct ?? 0 },
+      history,
+    };
   },
 });

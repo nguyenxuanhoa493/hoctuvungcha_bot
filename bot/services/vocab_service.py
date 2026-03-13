@@ -5,6 +5,10 @@ def get_levels():
     return vocab_db.get_levels()
 
 
+def get_levels_with_subcat_count():
+    return vocab_db.get_levels_with_subcat_count()
+
+
 def get_subcategories(level_sql_id: int):
     return vocab_db.get_subcategories(level_sql_id)
 

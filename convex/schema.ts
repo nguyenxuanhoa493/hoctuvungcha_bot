@@ -51,6 +51,7 @@ export default defineSchema({
     telegramId: v.number(),
     username: v.optional(v.string()),
     firstName: v.string(),
+    dailyGoal: v.optional(v.number()),
   }).index("by_telegram_id", ["telegramId"]),
 
   userWordProgress: defineTable({
@@ -69,4 +70,11 @@ export default defineSchema({
     name: v.string(),
     vocabIds: v.array(v.number()),
   }).index("by_user", ["telegramId"]),
+
+  dailyActivity: defineTable({
+    telegramId: v.number(),
+    date: v.string(),       // "YYYY-MM-DD" in UTC+7
+    answered: v.number(),
+    correct: v.number(),
+  }).index("by_user_date", ["telegramId", "date"]),
 });

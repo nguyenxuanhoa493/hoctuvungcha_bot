@@ -27,7 +27,10 @@ ITEMS_PER_PAGE = 8
 
 def _level_keyboard(levels: list[dict]) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton(lv["title"], callback_data=f"level:{int(lv['sqlId'])}")]
+        [InlineKeyboardButton(
+            f"{lv['title']}  ({lv.get('subcatCount', '')} chủ đề)" if lv.get('subcatCount') else lv['title'],
+            callback_data=f"level:{int(lv['sqlId'])}"
+        )]
         for lv in levels
     ]
     buttons.append([InlineKeyboardButton("🔙 Quay lại", callback_data="back_to_source")])
@@ -82,7 +85,7 @@ async def choose_source(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         return ConversationHandler.END
 
     if data == "source:level":
-        levels = vocab_service.get_levels()
+        levels = vocab_service.get_levels_with_subcat_count()
         await query.edit_message_text(
             "📂 *Chọn Level:*", parse_mode="Markdown",
             reply_markup=_level_keyboard(levels)
@@ -261,9 +264,9 @@ async def cancel_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     context.user_data.clear()
     text = update.message.text
 
-    if text == "📊 Tiến độ":
-        from bot.handlers.progress import progress
-        await progress(update, context)
+    if text == "📊 Báo cáo":
+        from bot.handlers.progress import show_report
+        await show_report(update, context)
     elif text == "🔍 Tìm từ":
         from bot.handlers.search import ask_search
         await ask_search(update, context)
@@ -291,7 +294,7 @@ def register(app) -> None:
             STUDYING: [
                 CommandHandler("stop", stop),
                 MessageHandler(
-                    filters.Regex("^(📊 Tiến độ|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng)$"),
+                    filters.Regex("^(📊 Báo cáo|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng)$"),
                     cancel_to_menu,
                 ),
                 CallbackQueryHandler(_studying_callback),
@@ -302,7 +305,7 @@ def register(app) -> None:
             CommandHandler("stop", stop),
             CommandHandler("menu", stop),
             MessageHandler(
-                filters.Regex("^(📊 Tiến độ|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng)$"),
+                filters.Regex("^(📊 Báo cáo|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng)$"),
                 cancel_to_menu,
             ),
         ],

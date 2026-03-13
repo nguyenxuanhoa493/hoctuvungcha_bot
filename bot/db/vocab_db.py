@@ -5,6 +5,10 @@ def get_levels() -> list[dict]:
     return get_client().query("vocab:getLevels") or []
 
 
+def get_levels_with_subcat_count() -> list[dict]:
+    return get_client().query("vocab:getLevelsWithSubcatCount") or []
+
+
 def get_subcategories(level_sql_id: int) -> list[dict]:
     return get_client().query("vocab:getSubcategoriesByLevel", {"levelSqlId": level_sql_id}) or []
 
