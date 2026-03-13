@@ -36,7 +36,9 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "• /study — Chọn chủ đề và bắt đầu học\n"
         "• /myset — Quản lý bộ từ cá nhân\n"
         "• /progress — Xem tiến độ học\n"
-        "• /search \\<từ\\> — Tìm kiếm từ vựng\n\n"
+        "• /search \\<từ\\> — Tìm kiếm từ vựng\n"
+        "• /menu — Quay về menu chính\n"
+        "• /stop — Dừng phiên học\n\n"
         "3 chế độ học:\n"
         "🃏 *Flashcard* — Biết / Chưa biết\n"
         "🎯 *Trắc nghiệm* — Chọn 1 trong 4 đáp án\n"
@@ -45,6 +47,16 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
+async def menu_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show main menu — works from anywhere, ends any active conversation."""
+    context.user_data.clear()
+    await update.message.reply_text(
+        "🏠 Menu chính:",
+        reply_markup=MAIN_MENU,
+    )
+
+
 def register(app) -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_cmd))
+    app.add_handler(CommandHandler("menu", menu_cmd))

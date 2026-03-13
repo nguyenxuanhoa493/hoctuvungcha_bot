@@ -244,6 +244,26 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
+async def cancel_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Fallback: menu button pressed while in study conv → dispatch to correct handler."""
+    context.user_data.clear()
+    text = update.message.text
+
+    if text == "📊 Tiến độ":
+        from bot.handlers.progress import progress
+        await progress(update, context)
+    elif text == "🔍 Tìm từ":
+        from bot.handlers.search import ask_search
+        await ask_search(update, context)
+    elif text == "📋 Bộ từ của tôi":
+        from bot.handlers.myset import myset_start
+        await myset_start(update, context)
+    elif text == "📚 Học từ vựng":
+        await study_start(update, context)
+        return CHOOSE_SOURCE
+    return ConversationHandler.END
+
+
 def register(app) -> None:
     conv = ConversationHandler(
         entry_points=[
@@ -262,7 +282,14 @@ def register(app) -> None:
                 MessageHandler(filters.TEXT & ~filters.COMMAND, _studying_message),
             ],
         },
-        fallbacks=[CommandHandler("stop", stop)],
+        fallbacks=[
+            CommandHandler("stop", stop),
+            CommandHandler("menu", stop),
+            MessageHandler(
+                filters.Regex("^(📊 Tiến độ|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng)$"),
+                cancel_to_menu,
+            ),
+        ],
         per_message=False,
     )
     app.add_handler(conv)

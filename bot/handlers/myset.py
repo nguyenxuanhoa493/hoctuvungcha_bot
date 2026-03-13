@@ -190,7 +190,15 @@ def register(app) -> None:
                 CallbackQueryHandler(myset_manage_callback),
             ],
         },
-        fallbacks=[CommandHandler("cancel", myset_cancel)],
+        fallbacks=[
+            CommandHandler("cancel", myset_cancel),
+            CommandHandler("menu", myset_cancel),
+            MessageHandler(
+                filters.Regex("^(📚 Học từ vựng|📊 Tiến độ|🔍 Tìm từ)$"),
+                myset_cancel,
+            ),
+            MessageHandler(filters.Regex("^📋 Bộ từ của tôi$"), myset_start),
+        ],
         per_message=False,
     )
     app.add_handler(conv)

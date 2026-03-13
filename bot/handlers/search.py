@@ -98,6 +98,10 @@ async def handle_search_add(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await query.answer("✅ Đã thêm vào bộ từ!", show_alert=True)
 
 
+async def _search_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    return ConversationHandler.END
+
+
 def register(app) -> None:
     conv = ConversationHandler(
         entry_points=[
@@ -109,7 +113,13 @@ def register(app) -> None:
                 MessageHandler(filters.TEXT & ~filters.COMMAND, receive_query),
             ],
         },
-        fallbacks=[],
+        fallbacks=[
+            CommandHandler("menu", _search_cancel),
+            MessageHandler(
+                filters.Regex("^(📚 Học từ vựng|📋 Bộ từ của tôi|📊 Tiến độ|🔍 Tìm từ)$"),
+                _search_cancel,
+            ),
+        ],
         name="search_conv",
     )
     app.add_handler(conv)
