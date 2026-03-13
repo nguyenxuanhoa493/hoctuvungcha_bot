@@ -1,6 +1,8 @@
 import asyncio
 import logging
-from telegram.ext import Application
+import traceback
+from telegram import Update
+from telegram.ext import Application, ContextTypes
 from bot.config import BOT_TOKEN, WEBHOOK_URL, PORT
 from bot.handlers import start, study, myset, progress, search
 
@@ -12,6 +14,14 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.error("Exception while handling update:", exc_info=context.error)
+    if isinstance(update, Update) and update.effective_message:
+        await update.effective_message.reply_text(
+            "⚠️ Đã xảy ra lỗi, vui lòng thử lại."
+        )
+
+
 def build_app() -> Application:
     app = Application.builder().token(BOT_TOKEN).build()
     start.register(app)
@@ -19,6 +29,7 @@ def build_app() -> Application:
     myset.register(app)
     progress.register(app)
     search.register(app)
+    app.add_error_handler(error_handler)
     return app
 
 

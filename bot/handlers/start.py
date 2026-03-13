@@ -1,5 +1,6 @@
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes, CommandHandler
+from telegram.helpers import escape_markdown
 from bot.services import user_service
 
 MAIN_MENU = ReplyKeyboardMarkup(
@@ -18,8 +19,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         username=user.username,
         first_name=user.first_name,
     )
+    safe_name = escape_markdown(user.first_name, version=2)
     await update.message.reply_text(
-        f"👋 Xin chào *{user.first_name}*\\!\n\n"
+        f"👋 Xin chào *{safe_name}*\\!\n\n"
         "Chào mừng bạn đến với *LangGeek Bot* 🎓\n"
         "Tôi sẽ giúp bạn học từ vựng tiếng Anh hiệu quả\\.\n\n"
         "Chọn một chức năng bên dưới để bắt đầu:",
