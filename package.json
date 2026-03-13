@@ -1,0 +1,11 @@
+{
+  "name": "langeek-bot-convex",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npx convex dev",
+    "deploy": "npx convex deploy"
+  },
+  "dependencies": {
+    "convex": "^1.12.0"
+  }
+}

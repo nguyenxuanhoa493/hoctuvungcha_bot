@@ -1,0 +1,10 @@
+
+.env
+.env.local
+__pycache__/
+*.pyc
+*.pyo
+*.db
+node_modules/
+scripts/export/
+*.log

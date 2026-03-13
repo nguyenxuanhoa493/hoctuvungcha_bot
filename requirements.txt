@@ -1,0 +1,4 @@
+python-telegram-bot[webhooks]==21.6
+convex==0.6.0
+python-dotenv==1.0.1
+aiohttp==3.10.5
