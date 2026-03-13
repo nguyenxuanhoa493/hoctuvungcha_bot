@@ -1,29 +1,43 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes, CommandHandler, MessageHandler, filters
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from telegram.ext import (
+    ContextTypes, CommandHandler, MessageHandler, filters,
+    ConversationHandler, CallbackQueryHandler,
+)
 from bot.services import vocab_service, user_service
 
+WAITING_QUERY = 0
 
-async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+async def ask_search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Triggered by /search command or 🔍 Tìm từ button."""
     args = context.args
-    query_text = " ".join(args).strip() if args else ""
+    # If command has inline args (e.g. /search hello), search immediately
+    if args:
+        await _do_search(update, context, " ".join(args).strip())
+        return ConversationHandler.END
 
-    if not query_text:
-        await update.message.reply_text(
-            "🔍 Cách dùng: `/search <từ cần tìm>`\nVí dụ: `/search hello`",
-            parse_mode="Markdown",
-        )
-        return
+    await update.message.reply_text("🔍 Nhập từ cần tìm:")
+    return WAITING_QUERY
 
+
+async def receive_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query_text = update.message.text.strip()
+    await _do_search(update, context, query_text)
+    return ConversationHandler.END
+
+
+async def _do_search(update: Update, context: ContextTypes.DEFAULT_TYPE, query_text: str) -> None:
     results = vocab_service.search(query_text)
     if not results:
-        await update.message.reply_text(f"❌ Không tìm thấy từ nào khớp với *{query_text}*.", parse_mode="Markdown")
+        await update.message.reply_text(
+            f"❌ Không tìm thấy từ nào khớp với *{query_text}*.", parse_mode="Markdown"
+        )
         return
 
     await update.message.reply_text(
         f"🔍 Kết quả cho *{query_text}* ({len(results)} từ):",
         parse_mode="Markdown",
     )
-
     for v in results[:5]:
         await _send_vocab_detail(update, context, int(v["sqlId"]))
 
@@ -53,7 +67,6 @@ async def _send_vocab_detail(update: Update, context: ContextTypes.DEFAULT_TYPE,
 
     text = "\n".join(l for l in lines if l)
 
-    # Build add-to-set buttons
     sets = user_service.list_custom_sets(update.effective_user.id)
     buttons = []
     if sets:
@@ -81,22 +94,23 @@ async def handle_search_add(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     set_id = parts[1]
     vocab_id = int(parts[2])
     user_service.add_word_to_set(set_id, vocab_id)
-    await query.answer("✅ Đã thêm vào bộ từ!", show_alert=False)
-
-
-async def search_from_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    text = update.message.text.replace("🔍 Tìm từ", "").strip()
-    if not text:
-        await update.message.reply_text(
-            "🔍 Nhập từ cần tìm: `/search <từ>`", parse_mode="Markdown"
-        )
-        return
-    context.args = text.split()
-    await search(update, context)
+    await query.edit_message_reply_markup(reply_markup=None)
+    await query.answer("✅ Đã thêm vào bộ từ!", show_alert=True)
 
 
 def register(app) -> None:
-    from telegram.ext import CallbackQueryHandler
-    app.add_handler(CommandHandler("search", search))
-    app.add_handler(MessageHandler(filters.Regex("^🔍 Tìm từ$"), search_from_message))
+    conv = ConversationHandler(
+        entry_points=[
+            CommandHandler("search", ask_search),
+            MessageHandler(filters.Regex("^🔍 Tìm từ$"), ask_search),
+        ],
+        states={
+            WAITING_QUERY: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, receive_query),
+            ],
+        },
+        fallbacks=[],
+        name="search_conv",
+    )
+    app.add_handler(conv)
     app.add_handler(CallbackQueryHandler(handle_search_add, pattern=r"^search_add:"))

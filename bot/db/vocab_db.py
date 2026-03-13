@@ -27,7 +27,7 @@ def get_vocab_detail(sql_id: int) -> dict | None:
     return get_client().query("vocab:getVocabDetail", {"sqlId": sql_id})
 
 
-
+def get_examples_by_vocab(vocab_sql_id: int) -> list[dict]:
     return get_client().query("vocab:getExamplesByVocab", {"vocabSqlId": vocab_sql_id}) or []
 
 
