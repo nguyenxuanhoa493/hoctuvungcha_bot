@@ -319,6 +319,10 @@ def register(app) -> None:
         per_message=False,
     )
     app.add_handler(conv)
+    # Global fallback: fc: callbacks when no active conversation (e.g. after bot restart)
+    from telegram.ext import CallbackQueryHandler as CQH
+    from bot.handlers.flashcard import handle_fc_global
+    app.add_handler(CQH(handle_fc_global, pattern=r"^fc:"))
 
 
 async def _hint_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
