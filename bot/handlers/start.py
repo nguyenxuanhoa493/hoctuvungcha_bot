@@ -35,16 +35,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def home(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Reset state, clear recent chat history, and re-show start screen."""
+    """Reset state and re-show start screen (no message deletion)."""
     context.user_data.clear()
-    chat_id = update.effective_chat.id
-    current_msg_id = update.message.message_id
-    # Best-effort: delete the last 50 messages (bot + user messages in private chat)
-    for msg_id in range(current_msg_id, max(current_msg_id - 50, 0), -1):
-        try:
-            await context.bot.delete_message(chat_id, msg_id)
-        except Exception:
-            pass
     await start(update, context)
 
 
