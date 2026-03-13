@@ -69,7 +69,7 @@ async def handle_typing_answer(update: Update, context: ContextTypes.DEFAULT_TYP
 
     user_service.upsert_word_progress(
         telegram_id=update.effective_user.id,
-        vocab_id=vocab["sqlId"],
+        vocab_id=int(vocab["sqlId"]),
         correct=correct,
     )
 

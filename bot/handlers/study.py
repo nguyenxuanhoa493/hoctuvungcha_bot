@@ -27,7 +27,7 @@ ITEMS_PER_PAGE = 8
 
 def _level_keyboard(levels: list[dict]) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton(lv["title"], callback_data=f"level:{lv['sqlId']}")]
+        [InlineKeyboardButton(lv["title"], callback_data=f"level:{int(lv['sqlId'])}")]
         for lv in levels
     ]
     buttons.append([InlineKeyboardButton("❌ Huỷ", callback_data="cancel")])
@@ -38,7 +38,7 @@ def _subcat_keyboard(subcats: list[dict], page: int = 0) -> InlineKeyboardMarkup
     start = page * ITEMS_PER_PAGE
     chunk = subcats[start: start + ITEMS_PER_PAGE]
     buttons = [
-        [InlineKeyboardButton(s["title"], callback_data=f"subcat:{s['sqlId']}")]
+        [InlineKeyboardButton(s["title"], callback_data=f"subcat:{int(s['sqlId'])}")]
         for s in chunk
     ]
     nav = []

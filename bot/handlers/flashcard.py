@@ -70,7 +70,7 @@ async def handle_flashcard_callback(update: Update, context: ContextTypes.DEFAUL
 
     user_service.upsert_word_progress(
         telegram_id=query.from_user.id,
-        vocab_id=vocab["sqlId"],
+        vocab_id=int(vocab["sqlId"]),
         correct=correct,
     )
 

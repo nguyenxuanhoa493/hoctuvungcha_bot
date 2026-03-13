@@ -76,7 +76,7 @@ async def handle_quiz_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
     user_service.upsert_word_progress(
         telegram_id=query.from_user.id,
-        vocab_id=vocab["sqlId"],
+        vocab_id=int(vocab["sqlId"]),
         correct=correct,
     )
 

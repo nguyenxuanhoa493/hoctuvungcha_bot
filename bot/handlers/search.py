@@ -25,7 +25,7 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
     for v in results[:5]:
-        await _send_vocab_detail(update, context, v["id"])
+        await _send_vocab_detail(update, context, int(v["sqlId"]))
 
 
 async def _send_vocab_detail(update: Update, context: ContextTypes.DEFAULT_TYPE, vocab_id: int) -> None:

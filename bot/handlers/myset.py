@@ -155,7 +155,7 @@ async def myset_search_word(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     buttons = [
         [InlineKeyboardButton(
             f"{v['word']} — {v.get('meaningVi', '')}",
-            callback_data=f"ms_add_confirm:{v['sqlId']}"
+            callback_data=f"ms_add_confirm:{int(v['sqlId'])}"
         )]
         for v in results[:8]
     ]
