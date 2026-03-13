@@ -303,6 +303,7 @@ def register(app) -> None:
                     filters.Regex("^(📊 Báo cáo|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng|🏠 Trang chủ|💝 Ủng hộ)$"),
                     cancel_to_menu,
                 ),
+                CallbackQueryHandler(_hint_callback, pattern=r"^typing_hint$"),
                 CallbackQueryHandler(_studying_callback),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, _studying_message),
             ],
@@ -318,6 +319,11 @@ def register(app) -> None:
         per_message=False,
     )
     app.add_handler(conv)
+
+
+async def _hint_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    from bot.handlers.typing import handle_hint_callback
+    return await handle_hint_callback(update, context)
 
 
 async def _studying_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
