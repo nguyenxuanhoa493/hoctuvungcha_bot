@@ -7,15 +7,20 @@ from bot.services import quiz_service, user_service
 HINTS = ["meaning_vi", "pronunciation_ipa", "image_url"]
 
 
-async def send_typing_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def send_typing_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Returns True if session is done."""
     vocab_list: list[dict] = context.user_data["vocab_list"]
     index: int = context.user_data.get("vocab_index", 0)
     chat = update.effective_chat
 
     if index >= len(vocab_list):
-        await context.bot.send_message(chat.id, "🎉 Bạn đã hoàn thành phiên học\\!", parse_mode="MarkdownV2")
+        await context.bot.send_message(
+            chat.id,
+            "🎉 Bạn đã hoàn thành phiên học\\!\nNhấn menu để tiếp tục\\.",
+            parse_mode="MarkdownV2",
+        )
         context.user_data.clear()
-        return
+        return True
 
     vocab = vocab_list[index]
     hint_type = random.choice(HINTS)
@@ -46,6 +51,7 @@ async def send_typing_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
     else:
         await context.bot.send_message(chat.id, text, parse_mode="Markdown")
+    return False
 
 
 async def handle_typing_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -75,5 +81,5 @@ async def handle_typing_answer(update: Update, context: ContextTypes.DEFAULT_TYP
 
     context.user_data["awaiting_answer"] = False
     context.user_data["vocab_index"] = context.user_data.get("vocab_index", 0) + 1
-    await send_typing_prompt(update, context)
-    return STUDYING
+    done = await send_typing_prompt(update, context)
+    return ConversationHandler.END if done else STUDYING

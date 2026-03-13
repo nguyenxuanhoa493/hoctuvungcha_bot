@@ -15,7 +15,8 @@ def _build_card_text(vocab: dict) -> str:
     return "\n".join(lines)
 
 
-async def send_flashcard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def send_flashcard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Returns True if session is done."""
     vocab_list: list[dict] = context.user_data["vocab_list"]
     index: int = context.user_data.get("vocab_index", 0)
 
@@ -23,11 +24,11 @@ async def send_flashcard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         chat = update.effective_chat
         await context.bot.send_message(
             chat.id,
-            "🎉 Bạn đã học hết tất cả từ trong phiên này\\!",
+            "🎉 Bạn đã học hết tất cả từ trong phiên này\\!\nNhấn menu để tiếp tục\\.",
             parse_mode="MarkdownV2",
         )
         context.user_data.clear()
-        return
+        return True
 
     vocab = vocab_list[index]
     text = _build_card_text(vocab)
@@ -53,6 +54,7 @@ async def send_flashcard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await context.bot.send_message(
             chat.id, text, parse_mode="Markdown", reply_markup=keyboard
         )
+    return False
 
 
 async def handle_flashcard_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -75,5 +77,5 @@ async def handle_flashcard_callback(update: Update, context: ContextTypes.DEFAUL
     )
 
     context.user_data["vocab_index"] = index + 1
-    await send_flashcard(update, context)
-    return STUDYING
+    done = await send_flashcard(update, context)
+    return ConversationHandler.END if done else STUDYING

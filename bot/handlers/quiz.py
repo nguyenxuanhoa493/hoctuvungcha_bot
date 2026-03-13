@@ -4,15 +4,20 @@ from bot.handlers.study import STUDYING
 from bot.services import quiz_service, user_service
 
 
-async def send_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def send_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Returns True if session is done."""
     vocab_list: list[dict] = context.user_data["vocab_list"]
     index: int = context.user_data.get("vocab_index", 0)
     chat = update.effective_chat
 
     if index >= len(vocab_list):
-        await context.bot.send_message(chat.id, "🎉 Bạn đã hoàn thành phiên trắc nghiệm\\!", parse_mode="MarkdownV2")
+        await context.bot.send_message(
+            chat.id,
+            "🎉 Bạn đã hoàn thành phiên trắc nghiệm\\!\nNhấn menu để tiếp tục\\.",
+            parse_mode="MarkdownV2",
+        )
         context.user_data.clear()
-        return
+        return True
 
     vocab = vocab_list[index]
     question = quiz_service.make_quiz_question(vocab)
@@ -41,6 +46,7 @@ async def send_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             chat.id, caption, parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
+    return False
 
 
 async def handle_quiz_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -82,6 +88,5 @@ async def handle_quiz_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
     vocab_list: list[dict] = context.user_data["vocab_list"]
     context.user_data["vocab_index"] = context.user_data.get("vocab_index", 0) + 1
-
-    await send_quiz(update, context)
-    return STUDYING
+    done = await send_quiz(update, context)
+    return ConversationHandler.END if done else STUDYING

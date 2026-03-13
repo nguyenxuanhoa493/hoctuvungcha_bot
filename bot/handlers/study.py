@@ -278,6 +278,10 @@ def register(app) -> None:
             CHOOSE_MODE: [CallbackQueryHandler(choose_mode)],
             STUDYING: [
                 CommandHandler("stop", stop),
+                MessageHandler(
+                    filters.Regex("^(📊 Tiến độ|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng)$"),
+                    cancel_to_menu,
+                ),
                 CallbackQueryHandler(_studying_callback),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, _studying_message),
             ],
