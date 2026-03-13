@@ -276,6 +276,12 @@ async def cancel_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif text == "📚 Học từ vựng":
         await study_start(update, context)
         return CHOOSE_SOURCE
+    elif text in ("🏠 Trang chủ",):
+        from bot.handlers.start import start
+        await start(update, context)
+    elif text == "💝 Ủng hộ":
+        from bot.handlers.start import donate
+        await donate(update, context)
     return ConversationHandler.END
 
 
@@ -294,7 +300,7 @@ def register(app) -> None:
             STUDYING: [
                 CommandHandler("stop", stop),
                 MessageHandler(
-                    filters.Regex("^(📊 Báo cáo|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng)$"),
+                    filters.Regex("^(📊 Báo cáo|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng|🏠 Trang chủ|💝 Ủng hộ)$"),
                     cancel_to_menu,
                 ),
                 CallbackQueryHandler(_studying_callback),
@@ -305,7 +311,7 @@ def register(app) -> None:
             CommandHandler("stop", stop),
             CommandHandler("menu", stop),
             MessageHandler(
-                filters.Regex("^(📊 Báo cáo|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng)$"),
+                filters.Regex("^(📊 Báo cáo|🔍 Tìm từ|📋 Bộ từ của tôi|📚 Học từ vựng|🏠 Trang chủ|💝 Ủng hộ)$"),
                 cancel_to_menu,
             ),
         ],

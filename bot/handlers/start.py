@@ -1,12 +1,16 @@
+from pathlib import Path
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ContextTypes, CommandHandler
+from telegram.ext import ContextTypes, CommandHandler, MessageHandler, filters
 from telegram.helpers import escape_markdown
 from bot.services import user_service
+
+QR_PATH = Path(__file__).parent.parent / "qr.png"
 
 MAIN_MENU = ReplyKeyboardMarkup(
     [
         ["📚 Học từ vựng", "📋 Bộ từ của tôi"],
         ["📊 Báo cáo", "🔍 Tìm từ"],
+        ["🏠 Trang chủ", "💝 Ủng hộ"],
     ],
     resize_keyboard=True,
 )
@@ -30,6 +34,26 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
+async def home(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Reset state and re-show start screen."""
+    context.user_data.clear()
+    await start(update, context)
+
+
+async def donate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    caption = (
+        "💝 <b>Ủng hộ LangGeek Bot</b>\n\n"
+        "TECHCOMBANK\n"
+        "<b>NGUYEN XUAN HOA</b>\n"
+        "<code>1732888888</code>\n\n"
+        "Cám ơn đã ủng hộ! 🙏"
+    )
+    if QR_PATH.exists():
+        await update.message.reply_photo(photo=QR_PATH.open("rb"), caption=caption, parse_mode="HTML")
+    else:
+        await update.message.reply_text(caption, parse_mode="HTML")
+
+
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         "📖 *Hướng dẫn sử dụng*\n\n"
@@ -48,15 +72,13 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def menu_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show main menu — works from anywhere, ends any active conversation."""
     context.user_data.clear()
-    await update.message.reply_text(
-        "🏠 Menu chính:",
-        reply_markup=MAIN_MENU,
-    )
+    await update.message.reply_text("🏠 Menu chính:", reply_markup=MAIN_MENU)
 
 
 def register(app) -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("menu", menu_cmd))
+    app.add_handler(MessageHandler(filters.Regex("^🏠 Trang chủ$"), home))
+    app.add_handler(MessageHandler(filters.Regex("^💝 Ủng hộ$"), donate))
